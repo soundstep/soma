@@ -17,38 +17,8 @@
 .project
 .settings
 .tmproj
-nbproject
 Thumbs.db
 ehthumbs.db
 Icon?
 
-# Dreamweaver added files
-_notes
-dwsync.xml
-
-# Komodo
-*.komodoproject
-.komodotools
-
-# Folders to ignore
-.hg
-.svn
-.CVS
-intermediate
-publish
-.idea
-_notes
-phing
-
-# custom
-
-node_modules*
-components
-
-.project*
-.classpath*
-.idea*
-user.properties*
-
-/tools/cli/java/bin/*
-/tools/docs/NaturalDocs/library/*
+node_modules

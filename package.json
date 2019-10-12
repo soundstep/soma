@@ -1,36 +1,41 @@
 {
-  "name": "soma.js",
-  "version": "2.1.4",
-  "description": "soma.js is a javascript framework created to build scalable and maintainable applications.",
-  "keywords": [
-    "soma.js",
-    "soma",
-    "javascript",
-    "js",
-    "framework",
-    "mvc",
-    "lightweight",
-    "dependency injection",
-    "injection"
-  ],
-  "author": {
-    "name": "Romuald Quantin",
-    "email": "romu@soundstep.com"
-  },
-  "main": "build/soma.js",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/somajs/somajs.git"
-  },
-  "devDependencies": {
-    "grunt": ">=0.4.x",
-    "grunt-contrib-watch": "*",
-    "grunt-contrib-concat": "*",
-    "grunt-contrib-uglify": "*",
-    "grunt-karma": "~0.4.5",
-    "grunt-contrib-jshint": "~0.6.0"
-  },
-  "scripts": {
-	"test": "grunt karma"
-  }
+    "name": "@soundstep/soma",
+    "version": "3.0.0",
+    "author": "Romuald Quantin <romu@soundstep.com> (http://www.soundstep.com)",
+    "license": "MIT",
+    "description": "Soma is a javascript framework created to build scalable and maintainable applications.",
+    "main": "index.js",
+    "types": "types/soma.d.ts",
+    "scripts": {
+        "test": "mocha 'tests/**/*.js'",
+        "test:watch": "mocha --watch 'tests/**/*.js'"
+    },
+    "keywords": [
+        "soma.js",
+        "soma",
+        "javascript",
+        "js",
+        "framework",
+        "mvc",
+        "lightweight",
+        "dependency injection",
+        "injection"
+    ],
+    "homepage": "https://github.com/soundstep/soma",
+    "publishConfig": {
+        "access": "public"
+    },
+    "repository": {
+        "type": "git",
+        "url": "http://github.com/soundstep/soma.git"
+    },
+    "devDependencies": {
+        "chai": "4.2.0",
+        "mocha": "6.2.1",
+        "terser": "4.3.8"
+    },
+    "dependencies": {
+        "@soundstep/infuse": "3.0.3",
+        "signals": "1.0.0"
+    }
 }
