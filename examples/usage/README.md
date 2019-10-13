@@ -25,3 +25,9 @@ npm install webpack webpack-cli
 webpack --mode production examples/usage/esm/src/main.js --output examples/usage/esm/dist/main.js
 live-server . --open=examples/usage/esm/dist
 ```
+
+## AMD
+
+```
+live-server . --open=examples/usage/amd
+```

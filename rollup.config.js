@@ -3,8 +3,11 @@ import commonjs from 'rollup-plugin-commonjs';
 import { terser } from "rollup-plugin-terser";
 import pkg from './package.json';
 
+const date = new Date().toLocaleString('en-GB', { timeZone: 'UTC' }).split(',')[0];
+const banner = `/* soma - v${pkg.version} - ${date} - https://github.com/soundstep/soma */`;
+
 export default [
-	// browser-friendly UMD build
+	// browser
 	{
         input: 'index.js',
         external: [
@@ -15,17 +18,18 @@ export default [
 			name: 'soma',
 			file: pkg.browser,
 			format: 'umd',
+			banner,
             globals: {
                 '@soundstep/infuse': 'infuse',
                 'signals': 'signals'
             }
         },
 		plugins: [
-			resolve(), // so Rollup can find `ms`
-            commonjs() // so Rollup can convert `ms` to an ES module
+			resolve(),
+            commonjs()
 		]
 	},
-	// browser-friendly UMD build
+	// browser minified
 	{
         input: 'index.js',
         external: [
@@ -36,24 +40,30 @@ export default [
 			name: 'soma',
 			file: pkg.browser.replace('.js', '.min.js'),
 			format: 'umd',
+			banner,
             globals: {
                 '@soundstep/infuse': 'infuse',
                 'signals': 'signals'
-            }
+			}
         },
 		plugins: [
-			resolve(), // so Rollup can find `ms`
-            commonjs(), // so Rollup can convert `ms` to an ES module
-            terser()
+			resolve(),
+            commonjs(),
+            terser({
+				output: {
+					comments: function(node, comment) {
+						var text = comment.value;
+						var type = comment.type;
+						if (type == "comment2") {
+							// keep banner
+							return /github.com\/soundstep\/soma/i.test(text);
+						}
+					}
+				}
+			})
 		]
 	},
-
-	// CommonJS (for Node) and ES module (for bundlers) build.
-	// (We could have three entries in the configuration array
-	// instead of two, but it's quicker to generate multiple
-	// builds from a single configuration where possible, using
-	// an array for the `output` option, where we can specify 
-	// `file` and `format` for each target)
+	// es and cjs
 	{
 		input: 'index.js',
 		external: [

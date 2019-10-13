@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>soma.js | hello world</title>
+</head>
+<body>
+	<div id="message"></div>
+	<script type="text/javascript" src="../../node_modules/@soundstep/infuse/dist/infuse.min.js"></script>
+	<script type="text/javascript" src="../../node_modules/signals/dist/signals.min.js"></script>
+	<script type="text/javascript" src="../../dist/soma.js"></script>
+	<script>
+		class Model {
+			get() {
+				return 'Hello';
+			}
+		}
+
+		function Command(model) {
+			this.execute = (params) => {
+				document.body.innerHTML = `${model.get()} ${params}`;
+			}
+		}
+
+		class App extends soma.Application {
+			init() {
+				this.injector.mapClass('model', Model, true);
+				this.commands.add('test-command', Command);
+			}
+			start() {
+				this.emitter.dispatch('test-command', ['World!']);
+			}
+		}
+		const app = new App();
+
+		app.start();
+	</script>
+</body>
+</html>

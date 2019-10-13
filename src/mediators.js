@@ -4,22 +4,21 @@ const Mediators = function(emitter, injector) {
 };
 
 Mediators.prototype.create = function(target, MediatorClass) {
-    if (!MediatorClass || typeof MediatorClass !== 'function') {
-        throw new Error('[Mediators] Error creating a mediator, the first parameter must be a function.');
-    }
     if (target === undefined || target === null) {
-        throw new Error('Error creating a mediator, the second parameter cannot be undefined or null.');
+        throw new Error('Error creating a mediator, the first parameter cannot be undefined or null.');
+    }
+    if (!MediatorClass || typeof MediatorClass !== 'function') {
+        throw new Error('[Mediators] Error creating a mediator, the second parameter must be a function.');
     }
     let targetlist = [];
     const mediatorList = [];
-    const targetToString = Object.prototype.toString.call(target);
-    if ((targetToString === '[object Array]' || targetToString === '[object NodeList]') && target.length > 0) {
+    if (Array.isArray(target) && target.length > 0) {
         targetlist = [].concat(target);
     }
     else {
         targetlist.push(target);
     }
-    for (const i = 0, l = targetlist.length; i < l; i++) {
+    for (let i = 0, l = targetlist.length; i < l; i++) {
         const injector = this.injector.createChild();
         injector.mapValue('target', targetlist[i]);
         const mediator = injector.createInstance(MediatorClass);

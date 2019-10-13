@@ -1,6 +1,91 @@
 import infuse from '@soundstep/infuse';
 import Signal from 'signals';
 
+const utils = {};
+
+utils.is = {
+    object: (value) => typeof value === 'object' && value !== null,
+    array: Array.isArray || ((value) => Object.prototype.toString.call(value) === '[object Array]'),
+    func: (value) => typeof value === 'function'
+};
+
+utils.applyProperties = (target, extension, bindToExtension, list) => {
+    if (Object.prototype.toString.apply(list) === '[object Array]') {
+        for (const i = 0, l = list.length; i < l; i++) {
+            if (target[list[i]] === undefined || target[list[i]] === null) {
+                if (bindToExtension && typeof extension[list[i]] === 'function') {
+                    target[list[i]] = extension[list[i]].bind(extension);
+                }
+                else {
+                    target[list[i]] = extension[list[i]];
+                }
+            }
+        }
+    }
+    else {
+        for (const prop in extension) {
+            if (bindToExtension && typeof extension[prop] === 'function') {
+                target[prop] = extension[prop].bind(extension);
+            }
+            else {
+                target[prop] = extension[prop];
+            }
+        }
+    }
+};
+
+utils.augment = (target, extension, list) => {
+    if (!extension.prototype || !target.prototype) {
+        return;
+    }
+    if (Object.prototype.toString.apply(list) === '[object Array]') {
+        for (const i = 0, l = list.length; i < l; i++) {
+            if (!target.prototype[list[i]]) {
+                target.prototype[list[i]] = extension.prototype[list[i]];
+            }
+        }
+    }
+    else {
+        for (const prop in extension.prototype) {
+            if (!target.prototype[prop]) {
+                target.prototype[prop] = extension.prototype[prop];
+            }
+        }
+    }
+};
+
+utils.inherit = (parent, obj) => {
+    let Parent;
+    if (obj && obj.hasOwnProperty('constructor')) {
+        // use constructor if defined
+        Parent = obj.constructor;
+    } else {
+        // call the super constructor
+        Parent = function () {
+            return parent.apply(this, arguments);
+        };
+    }
+    // set the prototype chain to inherit from the parent without calling parent's constructor
+    const Chain = function(){};
+    Chain.prototype = parent.prototype;
+    Parent.prototype = new Chain();
+    // add obj properties
+    if (obj) {
+        utils.applyProperties(Parent.prototype, obj);
+    }
+    // point constructor to the Parent
+    Parent.prototype.constructor = Parent;
+    // set super class reference
+    Parent.parent = parent.prototype;
+    // add extend shortcut
+    Parent.extend = function (obj) {
+        return utils.inherit(Parent, obj);
+    };
+    return Parent;
+};
+
+utils.extend = obj => utils.inherit(function() {}, obj);
+
 const Emitter = function() {
     this.signals = {};
 };
@@ -53,91 +138,6 @@ Emitter.prototype.dispose = function() {
 Emitter.extend = function(obj) {
     return utils.inherit(Emitter, obj);
 };
-
-const utils$1 = {};
-
-utils$1.is = {
-    object: (value) => typeof value === 'object' && value !== null,
-    array: Array.isArray || ((value) => Object.prototype.toString.call(value) === '[object Array]'),
-    func: (value) => typeof value === 'function'
-};
-
-utils$1.applyProperties = (target, extension, bindToExtension, list) => {
-    if (Object.prototype.toString.apply(list) === '[object Array]') {
-        for (const i = 0, l = list.length; i < l; i++) {
-            if (target[list[i]] === undefined || target[list[i]] === null) {
-                if (bindToExtension && typeof extension[list[i]] === 'function') {
-                    target[list[i]] = extension[list[i]].bind(extension);
-                }
-                else {
-                    target[list[i]] = extension[list[i]];
-                }
-            }
-        }
-    }
-    else {
-        for (const prop in extension) {
-            if (bindToExtension && typeof extension[prop] === 'function') {
-                target[prop] = extension[prop].bind(extension);
-            }
-            else {
-                target[prop] = extension[prop];
-            }
-        }
-    }
-};
-
-utils$1.augment = (target, extension, list) => {
-    if (!extension.prototype || !target.prototype) {
-        return;
-    }
-    if (Object.prototype.toString.apply(list) === '[object Array]') {
-        for (const i = 0, l = list.length; i < l; i++) {
-            if (!target.prototype[list[i]]) {
-                target.prototype[list[i]] = extension.prototype[list[i]];
-            }
-        }
-    }
-    else {
-        for (const prop in extension.prototype) {
-            if (!target.prototype[prop]) {
-                target.prototype[prop] = extension.prototype[prop];
-            }
-        }
-    }
-};
-
-utils$1.inherit = (parent, obj) => {
-    let Parent;
-    if (obj && obj.hasOwnProperty('constructor')) {
-        // use constructor if defined
-        Parent = obj.constructor;
-    } else {
-        // call the super constructor
-        Parent = function () {
-            return parent.apply(this, arguments);
-        };
-    }
-    // set the prototype chain to inherit from the parent without calling parent's constructor
-    const Chain = function(){};
-    Chain.prototype = parent.prototype;
-    Parent.prototype = new Chain();
-    // add obj properties
-    if (obj) {
-        utils$1.applyProperties(Parent.prototype, obj);
-    }
-    // point constructor to the Parent
-    Parent.prototype.constructor = Parent;
-    // set super class reference
-    Parent.parent = parent.prototype;
-    // add extend shortcut
-    Parent.extend = function (obj) {
-        return utils$1.inherit(Parent, obj);
-    };
-    return Parent;
-};
-
-utils$1.extend = obj => utils$1.inherit(function() {}, obj);
 
 function interceptorHandler(injector, id, CommandClass, signal, binding) {
     const args = Array.prototype.slice.call(arguments, 5);
@@ -213,7 +213,7 @@ Commands.prototype.dispose = function() {
 };
 
 Commands.extend = function(obj) {
-    return utils$1.inherit(Commands, obj);
+    return utils.inherit(Commands, obj);
 };
 
 const Mediators = function(emitter, injector) {
@@ -222,22 +222,21 @@ const Mediators = function(emitter, injector) {
 };
 
 Mediators.prototype.create = function(target, MediatorClass) {
-    if (!MediatorClass || typeof MediatorClass !== 'function') {
-        throw new Error('[Mediators] Error creating a mediator, the first parameter must be a function.');
-    }
     if (target === undefined || target === null) {
-        throw new Error('Error creating a mediator, the second parameter cannot be undefined or null.');
+        throw new Error('Error creating a mediator, the first parameter cannot be undefined or null.');
+    }
+    if (!MediatorClass || typeof MediatorClass !== 'function') {
+        throw new Error('[Mediators] Error creating a mediator, the second parameter must be a function.');
     }
     let targetlist = [];
     const mediatorList = [];
-    const targetToString = Object.prototype.toString.call(target);
-    if ((targetToString === '[object Array]' || targetToString === '[object NodeList]') && target.length > 0) {
+    if (Array.isArray(target) && target.length > 0) {
         targetlist = [].concat(target);
     }
     else {
         targetlist.push(target);
     }
-    for (const i = 0, l = targetlist.length; i < l; i++) {
+    for (let i = 0, l = targetlist.length; i < l; i++) {
         const injector = this.injector.createChild();
         injector.mapValue('target', targetlist[i]);
         const mediator = injector.createInstance(MediatorClass);
@@ -291,10 +290,10 @@ Modules.prototype.create = function(module, args, register, useChildInjector) {
         const params = infuse.getDependencies(value);
 
         // add module function
-        const moduleArgs = [value];
+        let moduleArgs = [value];
 
         // add injection mappings
-        for (const i=0, l=params.length; i < l; i++) {
+        for (let i=0, l=params.length; i < l; i++) {
             if (injector.hasMapping(params[i]) || injector.hasInheritedMapping(params[i])) {
                 moduleArgs.push(injector.getValue(params[i]));
             }
@@ -304,7 +303,7 @@ Modules.prototype.create = function(module, args, register, useChildInjector) {
         }
 
         // trim array
-        for (const a = moduleArgs.length-1; a >= 0; a--) {
+        for (let a = moduleArgs.length-1; a >= 0; a--) {
             if (typeof moduleArgs[a] === 'undefined') {
                 moduleArgs.splice(a, 1);
             }
@@ -321,15 +320,15 @@ Modules.prototype.create = function(module, args, register, useChildInjector) {
     }
 
     // find module class
-    if (utils$1.is.function(module)) {
+    if (utils.is.func(module)) {
         // module function is sent directly
         moduleClass = module;
     }
-    else if (utils$1.is.object(module) && utils$1.is.function(module.module)) {
+    else if (utils.is.object(module) && utils.is.func(module.module)) {
         // module function is contained in an object, on a "module"
         moduleClass = module.module;
     }
-    else if (utils$1.is.object(module) && utils$1.is.function(module.Module)) {
+    else if (utils.is.object(module) && utils.is.func(module.Module)) {
         // module function is coming from an ES6 import as a Module property
         moduleClass = module.Module;
     }
@@ -349,7 +348,7 @@ Modules.prototype.create = function(module, args, register, useChildInjector) {
             moduleInstance = this.get(moduleClass.id);
         }
         else {
-            const injectorTarget = this.injector;
+            let injectorTarget = this.injector;
             if (shouldUseChildInjector) {
                 injectorTarget = this.injector.createChild();
                 injectorTarget.mapValue('injector', injectorTarget);
@@ -450,7 +449,7 @@ Application.prototype.dispose = function() {
 };
 
 Application.extend = function(obj) {
-    return utils$1.inherit(Application, obj);
+    return utils.inherit(Application, obj);
 };
 
 export { Application, Application as Commands, Application as Emitter, Application as Mediators, Application as Modules, Application as utils };

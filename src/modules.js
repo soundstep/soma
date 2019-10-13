@@ -38,10 +38,10 @@ Modules.prototype.create = function(module, args, register, useChildInjector) {
         const params = infuse.getDependencies(value);
 
         // add module function
-        const moduleArgs = [value];
+        let moduleArgs = [value];
 
         // add injection mappings
-        for (const i=0, l=params.length; i < l; i++) {
+        for (let i=0, l=params.length; i < l; i++) {
             if (injector.hasMapping(params[i]) || injector.hasInheritedMapping(params[i])) {
                 moduleArgs.push(injector.getValue(params[i]));
             }
@@ -51,7 +51,7 @@ Modules.prototype.create = function(module, args, register, useChildInjector) {
         }
 
         // trim array
-        for (const a = moduleArgs.length-1; a >= 0; a--) {
+        for (let a = moduleArgs.length-1; a >= 0; a--) {
             if (typeof moduleArgs[a] === 'undefined') {
                 moduleArgs.splice(a, 1);
             }
@@ -68,15 +68,15 @@ Modules.prototype.create = function(module, args, register, useChildInjector) {
     }
 
     // find module class
-    if (utils.is.function(module)) {
+    if (utils.is.func(module)) {
         // module function is sent directly
         moduleClass = module;
     }
-    else if (utils.is.object(module) && utils.is.function(module.module)) {
+    else if (utils.is.object(module) && utils.is.func(module.module)) {
         // module function is contained in an object, on a "module"
         moduleClass = module.module;
     }
-    else if (utils.is.object(module) && utils.is.function(module.Module)) {
+    else if (utils.is.object(module) && utils.is.func(module.Module)) {
         // module function is coming from an ES6 import as a Module property
         moduleClass = module.Module;
     }
@@ -96,7 +96,7 @@ Modules.prototype.create = function(module, args, register, useChildInjector) {
             moduleInstance = this.get(moduleClass.id);
         }
         else {
-            const injectorTarget = this.injector;
+            let injectorTarget = this.injector;
             if (shouldUseChildInjector) {
                 injectorTarget = this.injector.createChild();
                 injectorTarget.mapValue('injector', injectorTarget);

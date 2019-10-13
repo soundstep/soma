@@ -1,4 +1,5 @@
 import Signal from 'signals';
+import utils from './utils';
 
 const Emitter = function() {
     this.signals = {};
