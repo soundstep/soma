@@ -1,5 +1,5 @@
-import infuse from '@soundstep/infuse';
-import utils from './utils';
+const infuse = require('@soundstep/infuse');
+const utils = require('./utils');
 
 const Modules = function(injector) {
     this.injector = injector;
@@ -139,4 +139,4 @@ Modules.prototype.dispose = function() {
     this.list = {};
 };
 
-export default Modules;
+module.exports = Modules;

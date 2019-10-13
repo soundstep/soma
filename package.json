@@ -4,12 +4,15 @@
     "author": "Romuald Quantin <romu@soundstep.com> (http://www.soundstep.com)",
     "license": "MIT",
     "description": "Soma is a javascript framework created to build scalable and maintainable applications.",
-    "main": "index.js",
-    "types": "types/soma.d.ts",
     "scripts": {
+        "build": "rollup -c",
         "test": "mocha 'tests/**/*.js'",
         "test:watch": "mocha --watch 'tests/**/*.js'"
     },
+    "main": "dist/cjs/soma.js",
+    "module": "dist/esm/soma.js",
+    "browser": "dist/soma.js",
+    "types": "types/soma.d.ts",
     "keywords": [
         "soma.js",
         "soma",
@@ -32,6 +35,10 @@
     "devDependencies": {
         "chai": "4.2.0",
         "mocha": "6.2.1",
+        "rollup": "1.23.1",
+        "rollup-plugin-commonjs": "10.1.0",
+        "rollup-plugin-node-resolve": "5.2.0",
+        "rollup-plugin-terser": "5.1.2",
         "terser": "4.3.8"
     },
     "dependencies": {

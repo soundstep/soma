@@ -1,4 +1,4 @@
-import utils from './utils';
+const utils = require('./utils');
 
 function interceptorHandler(injector, id, CommandClass, signal, binding) {
     const args = Array.prototype.slice.call(arguments, 5);
@@ -77,4 +77,4 @@ Commands.extend = function(obj) {
     return utils.inherit(Commands, obj);
 };
 
-export default Commands;
+module.exports = Commands;

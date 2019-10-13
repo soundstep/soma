@@ -1,9 +1,9 @@
-import infuse from '@soundstep/infuse';
-import Emitter from './emitter';
-import Commands from './commands';
-import Mediators from './mediators';
-import Modules from './modules';
-import utils from './utils';
+const infuse = require('@soundstep/infuse');
+const Emitter = require('./emitter');
+const Commands = require('./commands');
+const Mediators = require('./mediators');
+const Modules = require('./modules');
+const utils = require('./utils');
 
 var Application = function() {
     this.injector = undefined;
@@ -66,4 +66,4 @@ Application.extend = function(obj) {
     return utils.inherit(Application, obj);
 };
 
-export default Application;
+module.exports = Application;

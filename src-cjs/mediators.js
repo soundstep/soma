@@ -36,4 +36,4 @@ Mediators.prototype.dispose = function() {
     this.injector = undefined;
 };
 
-export default Mediators;
+module.exports = Mediators;

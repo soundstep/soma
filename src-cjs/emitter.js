@@ -1,4 +1,4 @@
-import Signal from 'signals';
+const Signal = require('signals');
 
 const Emitter = function() {
     this.signals = {};
@@ -53,4 +53,4 @@ Emitter.extend = function(obj) {
     return utils.inherit(Emitter, obj);
 };
 
-export default Emitter;
+module.exports = Emitter;

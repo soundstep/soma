@@ -83,4 +83,4 @@ utils.inherit = (parent, obj) => {
 
 utils.extend = obj => utils.inherit(function() {}, obj);
 
-export default utils;
+module.exports = utils;
