@@ -2,36 +2,34 @@ from pygments import highlight
 from pygments.lexers import HtmlLexer
 from pygments.formatters import HtmlFormatter
 
-code = """<div class="app">
-  <h1>{{content}}</h1>
-</div>
+code = """<script>
+// simple function that will be injected into the model
+// a boolean dependency is injected
+var Config = function(debugMode) {
+  console.log("debugMode injected in Config:", debugMode);
+};
+// simple function in which a config instance and a boolean is injected
+var Model = function(debugMode, config) {
+  console.log("debugMode injected in Model:", debugMode);
+  console.log("config injected in Model:", config);
+};
 
-<script>
+// function model containing data (text to display)
+var MyApplication = soma.Application.extend({
+  init: function() {
+    // mapping rule: map the string "config" to the function Config
+    this.injector.mapClass("config", Config);
+    // mapping rule: map the string "debugMode" to a boolean
+    this.injector.mapValue("debugMode", true);
+    // instantiate the model using the injector
+    this.start();
+  },
+  start: function() {
+    var model = this.injector.createInstance(Model);
+  }
+});
 
-  // function model containing data (text to display)
-  var Model = function() {
-    this.data = "Hello world!"
-  };
-
-  // function template that will update the DOM
-  var Template = function(template, scope, element, model) {
-    scope.content = model.data;
-    template.render();
-  };
-
-  // application function
-  var QuickStartApplication = soma.Application.extend({
-    init: function() {
-      // model mapping rule so it can be injected in the template
-      this.injector.mapClass("model", Model, true);
-      // create a template for a specific DOM element
-      this.createTemplate(Template, document.querySelector('.app'));
-    }
-  });
-
-  // create application
-  var app = new QuickStartApplication();
-
+var app = new MyApplication();
 </script>
 """
 
