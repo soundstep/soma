@@ -112,12 +112,12 @@
 						<li><a href="#call-super-constructor-and-methods">Call super constructors and methods</a></li>
 					</ul>
 				</li>
-				<li><p><a href="#modules">Plugins</a></p>
+				<li><p><a href="#modules">Modules</a></p>
 					<ul class="hidden">
-						<!-- <li><a href="#create-a-plugin">Create a plugin</a></li>
-						<li><a href="#mouse-plugin">Mouse plugin</a></li>
-						<li><a href="#ready-plugin">Ready plugin (auto-regitration)</a></li>
-						<li><a href="#orientation-plugin">Orientation plugin</a></li> -->
+						<li><a href="#simple-module">A simple module</a></li>
+						<li><a href="#module-with-injections">A module with injections</a></li>
+						<li><a href="#module-with-parameters">A module with parameters</a></li>
+						<li><a href="#module-with-injections-and-parameters">A module with injections and parameters</a></li>
 					</ul>
 				</li>
 				<li><a href="#router">Router</a></li>
@@ -1298,17 +1298,203 @@ CurrentFunction.parent.myMethod.call(this, param);</code></pre>
 			<a class="anchor" name="modules"></a>
 		</div>
 
-		<p>Modules are separated entities, following a specific signature, so they can be added effortlessly in a soma application. The can be seen as "plugins".</p>
+		<p>Modules are meant to be separate entities, following a specific signature, so they can be added effortlessly in a soma application. The can be seen as "plugins".</p>
 		<p>The modules can be developed using the soma capabilities (injection, mediators, and so on), or be completely independent of soma (vanilla javascript).</p>
 
-		<p>A module two requirements:</p>
+		<p>A module has two requirements:</p>
 		<ul>
-			<li>It has to be instantiated (function or class)</li>
+			<li>It has to be instantiated, so it should be (or contain) a "function" or a "class"</li>
 			<li>It should have an `id` as static property</li>
-			<li>Optional: a `dispose` method to tear the module down</li>
+			<li>Optional: it can contain an `init` method to initialize the module</li>
+			<li>Optional: it can contain a `dispose` method to tear the module down</li>
 		</ul>
 
-		<p><a href="" class="button icon edit" target="_blank">try it yourself</a></p>
+		<p>Here are some examples.</p>
+
+		<ul>
+			<li>
+				<p>A function to instantiate.</p>
+				<pre><code class="language-js">modules.create(function);</code></pre>
+			</li>
+			<li>
+				<p>An object containing a module property referencing a function to instantiate.</p>
+				<pre><code class="language-js">modules.create({
+	module: function
+});</code></pre>
+			</li>
+			<li>
+				<p>An <a href="https://nodejs.org/api/esm.html#esm_modules_ecmascript_modules" target="_blank" rel="noopener noreferrer">
+					EcmaScript Module (esm)</a> containing a Module class to instantiate</p>
+				<pre><code class="language-js">export class Module() {
+
+}
+modules.create({
+	Module: function
+});</code></pre>
+			</li>
+		</ul>
+
+		<p>The function or class requires an static "id" property.</p>
+
+		<pre><code class="language-js">function MyModule() {}
+MyModule.id = 'my-module';</code></pre>
+
+		<pre><code class="language-js">class MyModule{}
+MyModule.id = 'my-module';</code></pre>
+
+		<p>Soma will try to inject mapping values if it finds any, such as the core elements or custom ones.
+			The core element is accessible using the "modules" property, or injecting the "modules" mapping name.</p>
+		<p>Note: Module instances are never stored within the framework.</p>
+		<p>Here is the modules core instance signature:</p>
+		<pre><code class="language-js">modules.create(module:function, arguments:array, register:boolean);
+modules.has(id:string);
+modules.get(id:string);
+modules.remove(id:string);
+modules.dispose();</code></pre>
+
+		<div class="subtitle">
+			<h2>A simple module</h2>
+			<a class="anchor" name="simple-module"></a>
+		</div>
+
+		<pre><code class="language-js">const Module = function(/* can inject values, such as emitter, mediators and so on */) {
+	console.log('Module created');
+};
+Module.id = 'moduleId';
+const module = modules.create(Module);</code></pre>
+
+		<pre><code class="language-js">const container = {
+	module: function(/* can inject values, such as emitter, mediators and so on */) {
+		console.log('Module created');
+	};
+};
+container.module.id = 'moduleId';
+const module = modules.create(container);</code></pre>
+
+		<p>As a best practice, a Module should contain an optional dispose function that will be called on
+			removal. The Module can also contain an optional init method that will be called on creation.</p>
+
+		<pre><code class="language-js">function Module() {}
+Module.prototype.init = function() {};
+Module.prototype.dispose = function() {};</code></pre>
+
+		<p>A full example with a class:</p>
+
+		<pre><code class="language-js">class Module {
+	static id = 'my-module';
+	constructor() {
+		console.log('Module created');
+	}
+	init() {
+		console.log('Module initializing...');
+	}
+	dispose() {
+		console.log('Module disposed');
+	}
+}
+
+class MyApplication extends soma.Application {
+	init() {
+		// create module
+		const module = this.modules.create(Module);
+		// get module
+		console.log('get:', this.modules.get('my-module'));
+		// has module
+		console.log('has:', this.modules.has('my-module'));
+		// destroy module using an id
+		this.modules.remove('my-module');
+	}
+}
+
+const app = new MyApplication();</code></pre>
+
+		<p><a href="https://replit.com/@RomualdQuantin/Soma-module-simple?lite=true#index.js" class="button icon edit" target="_blank">try it yourself</a></p>
+
+		<div class="back"><a href="#">top</a></div>
+
+		<div class="subtitle">
+			<h2>A module with injections</h2>
+			<a class="anchor" name="module-with-injections"></a>
+		</div>
+
+		<pre><code class="language-js">class Module {
+	static id = 'my module';
+	constructor(emitter, instance, someData) {
+		// module can receive injections
+		console.log('Module created.');
+		console.log('Arguments received', arguments);
+	}
+}
+
+class MyApplication extends soma.Application {
+	init() {
+		this.injector.mapValue('someData', { data:1 });
+		const module = this.modules.create(Module);
+	}
+}
+
+const app = new MyApplication();
+</code></pre>
+
+		<p><a href="https://replit.com/@RomualdQuantin/Soma-module-inject?lite=true#index.js" class="button icon edit" target="_blank">try it yourself</a></p>
+
+		<div class="back"><a href="#">top</a></div>
+
+		<div class="subtitle">
+			<h2>A module with parameters</h2>
+			<a class="anchor" name="module-with-parameters"></a>
+		</div>
+
+		<pre><code class="language-js">class Module {
+	static id = 'my module';
+	constructor(param1, param2) {
+		// module can receive injections
+		console.log('Module created.');
+		console.log('Arguments received', arguments);
+	}
+}
+
+class MyApplication extends soma.Application {
+	init() {
+		const module = this.modules.create(Module, ['a param', {data:1}]);
+	}
+}
+
+const app = new MyApplication();</code></pre>
+
+		<p><a href="https://replit.com/@RomualdQuantin/Soma-module-parameters?lite=true#index.js" class="button icon edit" target="_blank">try it yourself</a></p>
+
+		<div class="back"><a href="#">top</a></div>
+
+		<div class="subtitle">
+			<h2>A module with injections and parameters</h2>
+			<a class="anchor" name="module-with-injections-and-parameters"></a>
+		</div>
+
+		<pre><code class="language-js">class Module {
+	static id = 'my module';
+	constructor(param1, param2) {
+		this.emitter = null;
+		this.commands = null;
+		// module can receive injections
+		console.log('Module created.');
+		console.log('Arguments received', arguments);
+	}
+	init() {
+		console.log('Emitter injected', this.emitter);
+		console.log('Commands injected', this.commands);
+	}
+}
+
+class MyApplication extends soma.Application {
+	init() {
+		const module = this.modules.create(Module, ['a param', {data:1}]);
+	}
+}
+
+const app = new MyApplication();</code></pre>
+
+		<p><a href="https://replit.com/@RomualdQuantin/Soma-module-inject-and-parameters?lite=true#index.js" class="button icon edit" target="_blank">try it yourself</a></p>
 
 		<div class="back"><a href="#">top</a></div>
 
