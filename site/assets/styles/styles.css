@@ -2,7 +2,7 @@
 
 body {
 	padding: 0px 50px 50px 50px;
-	font: 14px/1.5 Lato, "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font: 16px/1.5 Lato, "Helvetica Neue", Helvetica, Arial, sans-serif;
 	color: #676767;
 	font-weight: 300;
 }
@@ -190,7 +190,7 @@ header ul a strong {
 	bottom: 10px;
 }
 nav {
-	font-size: 13px;
+	font-size: 14px;
 }
 nav p {
 	margin-bottom: -2px;
@@ -462,4 +462,8 @@ a:hover, a:active {
 		font-size: 12pt;
 		color: #444;
 	}
+}
+
+code[class*="language-"], pre[class*="language-"] {
+	font-size: 0.86em;
 }
