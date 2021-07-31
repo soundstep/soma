@@ -1,4 +1,4 @@
-/* soma - v3.0.0 - 7/31/2021 - https://github.com/soundstep/soma */
+/* soma - v3.0.3 - 7/31/2021 - https://github.com/soundstep/soma */
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('@soundstep/infuse'), require('signals')) :
     typeof define === 'function' && define.amd ? define(['exports', '@soundstep/infuse', 'signals'], factory) :
