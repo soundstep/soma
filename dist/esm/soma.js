@@ -274,7 +274,7 @@ Modules.prototype.create = function(module, args, register, useChildInjector) {
 
     // validate module
     function validate(moduleClass) {
-        const valid = true;
+        let valid = true;
         if (moduleClass === undefined || moduleClass === null) {
             valid = false;
         }
