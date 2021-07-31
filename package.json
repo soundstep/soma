@@ -1,6 +1,6 @@
 {
     "name": "@soundstep/soma",
-    "version": "3.0.3",
+    "version": "3.0.4",
     "author": "Romuald Quantin <romu@soundstep.com> (http://www.soundstep.com)",
     "license": "MIT",
     "description": "Soma is a javascript framework created to build scalable and maintainable applications.",
