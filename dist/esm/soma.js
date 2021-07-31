@@ -452,4 +452,4 @@ Application.extend = function(obj) {
     return utils.inherit(Application, obj);
 };
 
-export { Application, Application as Commands, Application as Emitter, Application as Mediators, Application as Modules, Application as utils };
+export { Application, Application as Commands, Application as Emitter, Application as Mediators, Application as Modules, utils };

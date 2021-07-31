@@ -1,4 +1,4 @@
-/* soma - v3.0.0 - 10/13/2019 - https://github.com/soundstep/soma */
+/* soma - v3.0.3 - 7/31/2021 - https://github.com/soundstep/soma */
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('@soundstep/infuse'), require('signals')) :
     typeof define === 'function' && define.amd ? define(['exports', '@soundstep/infuse', 'signals'], factory) :
@@ -464,7 +464,7 @@
     exports.Emitter = Application;
     exports.Mediators = Application;
     exports.Modules = Application;
-    exports.utils = Application;
+    exports.utils = utils;
 
     Object.defineProperty(exports, '__esModule', { value: true });
 

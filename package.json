@@ -2,6 +2,9 @@
   "name": "soma-gh-pages",
   "version": "3.0.0",
   "description": "soma is a javascript framework created to build scalable and maintainable applications.",
+  "scripts": {
+    "build": "./update.sh"
+  },
   "keywords": [
     "soma.js",
     "soma",

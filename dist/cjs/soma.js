@@ -463,4 +463,4 @@ exports.Commands = Application;
 exports.Emitter = Application;
 exports.Mediators = Application;
 exports.Modules = Application;
-exports.utils = Application;
+exports.utils = utils;
