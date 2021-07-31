@@ -106,17 +106,18 @@
 				</li>
 				<li><p><a href="#oop">OOP</a></p>
 					<ul class="hidden">
-						<li><a href="#inheritance">Inheritance</a></li>
+						<li><a href="#inheritance-with-classes">Inheritance with classes</a></li>
+						<li><a href="#inheritance-without-classes">Inheritance without classes</a></li>
 						<li><a href="#extend-method-shortcut">Extend method shortcut</a></li>
 						<li><a href="#call-super-constructor-and-methods">Call super constructors and methods</a></li>
 					</ul>
 				</li>
-				<li><p><a href="#plugins">Plugins</a></p>
+				<li><p><a href="#modules">Plugins</a></p>
 					<ul class="hidden">
-						<li><a href="#create-a-plugin">Create a plugin</a></li>
+						<!-- <li><a href="#create-a-plugin">Create a plugin</a></li>
 						<li><a href="#mouse-plugin">Mouse plugin</a></li>
 						<li><a href="#ready-plugin">Ready plugin (auto-regitration)</a></li>
-						<li><a href="#orientation-plugin">Orientation plugin</a></li>
+						<li><a href="#orientation-plugin">Orientation plugin</a></li> -->
 					</ul>
 				</li>
 				<li><a href="#router">Router</a></li>
@@ -210,38 +211,80 @@ npm install signals</code></pre>
 
 <script>
 
-	// function model containing data (text to display)
-	const Model = function() {
-		this.data = "Hello world!"
-	};
+	// model containing data (text to display)
+	class Model {
+		constructor() {
+			this.data = "Hello Soma!"
+		}
+	}
 
-	// command to update the DOM
-	const UpdateDOM = function(model) {
-		this.execute = () => {
-			document.querySelector('.app').innerHTML = model.data;
-		};
+	class UpdateDOMCommand {
+		constructor(model) {
+			this.model = model;
+		}
+		execute() {
+			document.querySelector('.app').innerHTML = this.model.data;
+			console.log('DOM updated!');
+		}
 	}
 
 	// application
-	const QuickStartApplication = soma.Application.extend({
-		init: function() {
+	class QuickStartApplication extends soma.Application {
+		init() {
 			// model mapping rule so it can be injected in the template
 			this.injector.mapClass("model", Model, true);
 			// create a template for a specific DOM element
-			this.commands.add('update-dom', UpdateDOM);
-		},
-		start: function() {
+			this.commands.add('update-dom', UpdateDOMCommand);
+		}
+		start() {
+			console.log('start', this.emitter);
 			this.emitter.dispatch('update-dom');
 		}
-	});
+	};
 
 	// create application
-	var app = new QuickStartApplication();
+	const app = new QuickStartApplication();
 	app.start();
 
 &lt;/script></script>
 
 		<p><a href="https://replit.com/@RomualdQuantin/Soma-quick-start?lite=true#script.js" class="button icon edit" target="_blank">try it yourself</a></p>
+
+		<div class="back"><a href="#">top</a></div>
+
+		<p>The same application with functions, if you prefer this syntax.</p>
+
+		<pre><code class="language-js">// function model containing data (text to display)
+const Model = function() {
+	this.data = "Hello world!"
+};
+
+// command to update the DOM
+const UpdateDOM = function(model) {
+	this.execute = () => {
+		document.querySelector('.app').innerHTML = model.data;
+		console.log('DOM updated!');
+	};
+}
+
+// application
+const QuickStartApplication = soma.Application.extend({
+	init: function() {
+		// model mapping rule so it can be injected in the template
+		this.injector.mapClass("model", Model, true);
+		// create a template for a specific DOM element
+		this.commands.add('update-dom', UpdateDOM);
+	},
+	start: function() {
+		this.emitter.dispatch('update-dom');
+	}
+});
+
+// create application
+var app = new QuickStartApplication();
+app.start();</code></pre>
+
+		<p><a href="https://replit.com/@RomualdQuantin/Soma-quick-start-function?lite=true#script.js" class="button icon edit" target="_blank">try it yourself</a></p>
 
 		<div class="back"><a href="#">top</a></div>
 
@@ -257,6 +300,14 @@ npm install signals</code></pre>
 		<p>The first step to build a soma application is to create an application instance. This is the only moment a framework function has to be extended, all the other entities can be re-usable plain javascript function, and framework agnostic.</p>
 		<p>The application instance will execute two functions so you can setup the architecture needed: the init and the start functions.</p>
 		<p>Here are different syntax to create an application instance.</p>
+
+		<pre><code class="language-js">class MyApplication extends soma.Application {
+	init() {
+		console.log('init');
+	}
+}
+
+const app = new MyApplication();</code></pre>
 
 		<pre><code class="language-js">const MyApplication = soma.Application.extend({
 	init: function() {
@@ -274,15 +325,19 @@ MyApplication.prototype.init = function() {
 
 const app = new MyApplication();</code></pre>
 
-<pre><code class="language-js">class MyApplication extends soma.Application {
-	init() {
-		console.log('init');
-	}
-}
-
-const app = new MyApplication();</code></pre>
-
 		<p>The constructor of an application can be overridden to implement your own. The "parent" constructor will have to be called so the framework can bootstrap. Click here to <a href="https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Function/call" target="_blank">learn more about chaining constructor</a>.</p>
+
+		<pre><code class="language-js">class MyApplication extends soma.Application {
+	constructor(param) {
+		this.param = param;
+		super.call(this);
+	},
+	init: function() {
+		console.log('init with param:', this.param);
+	}
+});
+
+const app = new MyApplication('my application parameter');</code></pre>
 
 		<pre><code class="language-js">const MyApplication = soma.Application.extend({
 	constructor: function(param) {
@@ -318,8 +373,8 @@ const app = new MyApplication('my application parameter');</code></pre>
 		<p>They are available in the application or in other entities using dependency injection.</p>
 		<p>Here is how to get their references in the application instance.</p>
 
-		<pre><code class="language-js">const MyApplication = soma.Application.extend({
-	init: function() {
+		<pre><code class="language-js">class MyApplication extends soma.Application {
+	init() {
 		this.injector; // dependency injection pattern
 		this.emitter; // observer pattern
 		this.commands; // command pattern
@@ -408,30 +463,34 @@ const app = new MyApplication('my application parameter');</code></pre>
 
 		<pre><code class="language-js">// simple function that will be injected into the model
 // a boolean dependency is injected
-const Config = function(debugMode) {
-	console.log('debugMode injected in Config:', debugMode);
-};
+class Config {
+	constructor(debugMode) {
+		console.log('debugMode injected in Config:', debugMode);
+	}
+}
 
 // simple function in which a config instance and a boolean is injected
-const Model = function(debugMode, config) {
-	console.log('debugMode injected in Model:', debugMode);
-	console.log('config injected in Model:', config);
-};
+class Model {
+	constructor(debugMode, config) {
+		console.log('debugMode injected in Model:', debugMode);
+		console.log('config injected in Model:', config);
+	}
+}
 
 // function model containing data (text to display)
-const MyApplication = soma.Application.extend({
-	init: function() {
+class MyApplication extends soma.Application {
+	init() {
 		// mapping rule: map the string 'config' to the function Config
 		this.injector.mapClass('config', Config);
 		// mapping rule: map the string 'debugMode' to a boolean
 		this.injector.mapValue('debugMode', true);
 		// instantiate the model using the injector
 		this.start();
-	},
-	start: function() {
+	}
+	start() {
 		const model = this.injector.createInstance(Model);
 	}
-});
+};
 
 var app = new MyApplication();</code></pre>
 
@@ -467,22 +526,29 @@ var app = new MyApplication();</code></pre>
 
 		<p>In the following example, dispatching an event will instantiate and execute a <code>Command</code> function, which will instantiate a <code>Model</code> function as it needs this dependency, which will instantiate a <code>Config</code> function as it needs this dependency.</p>
 
-		<pre><code class="language-js">const Config = function() {
-	console.log('Config instantiated');
-};
-
-const Model = function(config) {
-	console.log('Model instantiated with a config injected:', config);
-};
-
-const Command = function(model) {
-	this.execute = function() {
-		console.log('Command executed with a model injected:', model);
+		<pre><code class="language-js">class Config {
+	constructor() {
+		console.log('Config instantiated');
 	}
-};
+}
 
-const MyApplication = soma.Application.extend({
-	init: function() {
+class Model {
+	constructor(config) {
+		console.log('Model instantiated with a config injected:', config);
+	}
+}
+
+class Command {
+	constructor(model) {
+		this.model = model;
+	}
+	execute() {
+		console.log('Command executed with a model injected:', this.model);
+	}
+}
+
+class MyApplication extends soma.Application {
+	init() {
 		// mapping rule: map the string 'config' to the function Config
 		this.injector.mapClass('config', Config, true);
 		// mapping rule: map the string 'model' to the function Model
@@ -491,16 +557,16 @@ const MyApplication = soma.Application.extend({
 		this.commands.add('some-event', Command);
 		// start
 		this.start();
-	},
-	start: function() {
+	}
+	start() {
 		// send a command
 		this.emitter.dispatch('some-event');
 	}
-});
+}
 
 const app = new MyApplication();</code></pre>
 
-		<p><a href="https://replit.com/@RomualdQuantin/Soma-simple-injection>lite=true#index.js" class="button icon edit" target="_blank">try it yourself</a></p>
+		<p><a href="https://replit.com/@RomualdQuantin/Soma-simple-injection?lite=true#index.js" class="button icon edit" target="_blank">try it yourself</a></p>
 
 		<div class="back"><a href="#">top</a></div>
 
@@ -575,22 +641,22 @@ const app = new MyApplication();</code></pre>
 
 		<p>Creating an event and dispatching it with the dispatcher is very simple.</p>
 
-		<pre><code class="language-js">const MyApplication = soma.Application.extend({
-	init: function() {
+		<pre><code class="language-js">class MyApplication extends soma.Application {
+	init() {
 		this.start();
-	},
-	start: function() {
+	}
+	start() {
 		// listen to an event
 		this.emitter.addListener('some-event', this.handler);
 		// dispatch an event
 		this.emitter.dispatch('some-event', ['my parameter']);
 		// cleanup
 		this.emitter.removeListener('some-event', this.handler);
-	},
-	handler: function(param) {
+	}
+	handler(param) {
 		console.log('event received with:', param);
 	}
-});
+}
 
 const app = new MyApplication();</code></pre>
 
@@ -612,26 +678,28 @@ const app = new MyApplication();</code></pre>
 
 		<p>In the following example, an event is dispatched from the application instance, and listened to both in the application instance and a view.</p>
 
-		<pre><code class="language-js">const View = function(emitter) {
-const handler = () => console.log('event received in a view');
-	emitter.addListener('some-event', handler);
+		<pre><code class="language-js">cclass View {
+	constructor(emitter) {
+		const handler = () => console.log('event received in a view');
+		emitter.addListener('some-event', handler);
+	}
 }
 
-const MyApplication = soma.Application.extend({
-	init: function() {
+class MyApplication extends soma.Application {
+	init() {
 		this.injector.createInstance(View);
 		this.start();
-	},
-	start: function() {
+	}
+	start() {
 		// listen to an event
 		this.emitter.addListener('some-event', this.handler);
 		// dispatch an event
 		this.emitter.dispatch('some-event');
-	},
-	handler: function() {
+	}
+	handler() {
 		console.log('event received in the app');
 	}
-});
+}
 
 const app = new MyApplication();</code></pre>
 
@@ -652,14 +720,18 @@ const app = new MyApplication();</code></pre>
 			application instance as the bind function changes the scope of the event handler, making the
 			instance variable accessible.</p>
 
-		<pre><code class="language-js">const MyApplication = soma.Application.extend({
-	init: function() {
+		<pre><code class="language-js">class MyApplication extends soma.Application {
+	init() {
 		// instance variable
 		this.myVariable = "myValue";
 		// listen to an event without binding
 		this.emitter.addListener('some-event', function() {
-			// "this" is the window (or global with nodejs)
-			console.log('instance variable not accessible:', this.myVariable);
+			try {
+				// "this" is the window, or global with nodejs, or undefined with classes
+				console.log('instance variable not accessible:', this.myVariable);
+			} catch(err) {
+				console.log(err.message);
+			}
 		});
 		// listen to an event using the signals scope
 		this.emitter.addListener('some-event', function() {
@@ -673,11 +745,11 @@ const app = new MyApplication();</code></pre>
 		}.bind(this));
 		// start
 		this.start();
-	},
-	start: function() {
+	}
+	start() {
 		this.emitter.dispatch('some-event');
 	}
-});
+}
 
 const app = new MyApplication();</code></pre>
 
@@ -690,8 +762,8 @@ const app = new MyApplication();</code></pre>
 
 		<p>Listeners can be removed using the emitter, the signal instance of an event, or the binding of a listener.</p>
 
-		<pre><code class="language-js">const MyApplication = soma.Application.extend({
-	init: function() {
+		<pre><code class="language-js">class MyApplication extends soma.Application {
+	init() {
 
 		// retrieve a binding
 		const binding = this.emitter.addListener('some-event', this.handler, this);
@@ -713,13 +785,13 @@ const app = new MyApplication();</code></pre>
 		// the same scope is needed to properly remove the listener
 		signal.remove(this.handler, this);
 
-		// dispastch another event
+		// dispatch another event
 		this.emitter.dispatch('some-event'); // will not be received
-	},
-	handler: function() {
+	}
+	handler() {
 		console.log('received event');
 	}
-});
+}
 
 const app = new MyApplication();</code></pre>
 
@@ -818,28 +890,32 @@ this.emitter.removeListener('some-event', boundEventHandler);</code></pre>
 
 		<p>The following example contains a <code>Navigation</code> model, its role is to display a screen using an ID. A Command is created to call the navigation method. The command is mapped to a "show-screen" event, which is used to send the ID of a screen. This setup makes possible, for any actor of the application, to dispatch an event to show a screen.</p>
 
-		<pre><code class="language-js">const Navigation = function() {}
-Navigation.prototype.showScreen = function(screenId) {
-	console.log('Display screen:', screenId);
-};
-
-const Command = function(navigation) {
-	this.execute = function(screenId) {
-		console.log('Command executed with parameter:', screenId);
-		navigation.showScreen(screenId);
+		<pre><code class="language-js">class Navigation {
+	showScreen(screenId) {
+		console.log('Display screen:', screenId);
 	}
-};
+}
 
-const MyApplication = soma.Application.extend({
-	init: function() {
+class Command {
+	constructor(navigation) {
+		this.navigation = navigation;
+	}
+	execute(screenId) {
+		console.log('Command executed with parameter:', screenId);
+		this.navigation.showScreen(screenId);
+	}
+}
+
+class MyApplication extends soma.Application {
+	init() {
 		this.injector.mapClass('navigation', Navigation, true);
 		this.commands.add('show-screen', Command);
 		this.start();
-	},
-	start: function() {
+	}
+	start() {
 		this.emitter.dispatch('show-screen', ['home']);
 	}
-});
+}
 
 const app = new MyApplication();</code></pre>
 
@@ -856,28 +932,30 @@ const app = new MyApplication();</code></pre>
 		<p>As the commands are using events to be triggered, the DOM Event provides the necessary tools to monitor (addListener) and interrupt a command (event.preventDefault).</p>
 		<p>In the following example, a command is executed and an external <code>Monitor</code> entity is able to monitor this command by listening to the event.</p>
 
-		<pre><code class="language-js">const Monitor = function(emitter) {
-	emitter.addListener('some-event', function() {
-		console.log('Command monitored');
-	});
-};
+		<pre><code class="language-js">class Monitor {
+	constructor(emitter) {
+		emitter.addListener('some-event', () => {
+			console.log('Command monitored');
+		});
+	}
+}
 
-const Command = function() {
-	this.execute = function() {
+class Command {
+	execute() {
 		console.log('Command executed');
 	}
-};
+}
 
-const MyApplication = soma.Application.extend({
-	init: function() {
+class MyApplication extends soma.Application {
+	init() {
 		this.injector.createInstance(Monitor);
 		this.commands.add('some-event', Command);
 		this.start();
-	},
-	start: function() {
+	}
+	start() {
 		this.emitter.dispatch('some-event');
 	}
-});
+}
 
 const app = new MyApplication();</code></pre>
 
@@ -886,33 +964,36 @@ const app = new MyApplication();</code></pre>
 		<p>In the following example, the <code>start</code> method dispatch an event to logout a user. The <code>EditorModel</code> is able to monitor the logout command and interrupt it.</p>
 		<p>The initiator of the command can decide when dispatching the event, if another component should be able to interrupt it. A DOM Event has a <code>cancelable</code> property that should be set to true when dispatched so another component can interrupt it using the <code>event.preventDefaut()</code> method.</p>
 
-		<pre><code class="language-js">const EditorModel = function(emitter) {
-	emitter.addListener('logout', function() {
-		const signal = emitter.getSignal('logout');
-		console.log('Logout event received in EditorModel');
-		if (!this.fileSaved) {
-			console.log('Interupt logout command');
-			signal.halt();
-		}
-	});
-};
+		<pre><code class="language-js">class EditorModel {
+	constructor(emitter) {
+		const fileSaved = false;
+		emitter.addListener('logout', function() {
+			const signal = emitter.getSignal('logout');
+			console.log('Logout event received in EditorModel');
+			if (!fileSaved) {
+				console.log('Interupt logout command');
+				signal.halt();
+			}
+		});
+	}
+}
 
-const LogoutCommand = function() {
-	this.execute = function(event) {
+class LogoutCommand {
+	execute() {
 		console.log('Logout user');
 	}
-};
+}
 
-const EditorApplication = soma.Application.extend({
-	init: function() {
+class EditorApplication extends soma.Application {
+	init() {
 		this.injector.createInstance(EditorModel);
 		this.commands.add('logout', LogoutCommand);
 		this.start();
-	},
-	start: function() {
+	}
+	start() {
 		this.emitter.dispatch('logout');
 	}
-});
+}
 
 const app = new EditorApplication();</code></pre>
 
@@ -959,24 +1040,27 @@ var mediators = mediators.create([object1, object2, object3], MyMediator);</code
 		<p>In the following example, a mediator that represents a DOM Element is created, paradoxically called "view" on purpose (see next example).</p>
 		<p>The mediator updates its target, a DOM Element, when it receives a specific event.</p>
 
-		<pre><code class="language-js">const TitleView = function(target, emitter) {
-	// listen to the event 'render-title' to update the target (DOM Element)
-	emitter.addListener('render-title', function(title) {
-		target.innerHTML = title;
-	});
-};
+		<pre><code class="language-js">class TitleView {
+	constructor(target, emitter) {
+		// listen to the event 'render-title' to update the target (DOM Element)
+		emitter.addListener('render-title', function(title) {
+			target.innerHTML = title;
+			console.log('Title rendered');
+		});
+	}
+}
 
-const Application = soma.Application.extend({
-	init: function() {
+class Application extends soma.Application {
+	init() {
 		// create a mediator that represents a DOM Element
 		this.mediators.create(document.getElementById('title'), TitleView);
 		this.start();
-	},
-	start: function() {
+	}
+	start() {
 		// dispatch an event to trigger an action in the mediator
 		this.emitter.dispatch('render-title', ['This is a title']);
 	}
-});
+}
 
 const app = new Application();</code></pre>
 
@@ -994,36 +1078,42 @@ const app = new Application();</code></pre>
 		<p>The following example also show how to use a single view function and a single mediator function, to handle multiple DOM Elements.</p>
 
 		<pre><code class="language-js">// model containing data
-const TitleModel = function() {
-	this.data = {
-		first: 'First title',
-		second: 'Second title',
-		third: 'Third title'
-	};
-};
-TitleModel.prototype.getTitle = function(id) {
-	return this.data[id];
-};
+class TitleModel {
+	constructor() {
+		this.data = {
+			first: 'First title',
+			second: 'Second title',
+			third: 'Third title'
+		};  
+	}
+	getTitle(id) {
+		return this.data[id];
+	}
+}
 
 // view representing a DOM element
-const TitleView = function(target) {
-	this.element = target;
-};
-TitleView.prototype.setTitle = function(value) {
-	this.element.innerHTML = value;
-};
+class TitleView {
+	constructor(target) {
+		this.element = target;
+	}
+	setTitle(value) {
+		this.element.innerHTML = value;
+	}
+}
 
 // mediator representing a view
-const TitleMediator = function(target, emitter, model) {
-	emitter.addListener('render-title', function() {
-		const id = target.element.getAttribute('data-id');
-		const title = model.getTitle(id);
-		target.setTitle(title);
-	});
-};
+class TitleMediator {
+	constructor(target, emitter, model) {
+		emitter.addListener('render-title', function() {
+			const id = target.element.getAttribute('data-id');
+			const title = model.getTitle(id);
+			target.setTitle(title);
+		});
+	}
+}
 
-const Application = soma.Application.extend({
-	init: function() {
+class Application extends soma.Application {
+	init() {
 		// map model to inject in mediators
 		this.injector.mapClass('model', TitleModel, true);
 		// convert a NodeList to an array of DOM elements
@@ -1033,12 +1123,12 @@ const Application = soma.Application.extend({
 		// create mediators (mediators representing a view)
 		const mediators = this.mediators.create(views, TitleMediator);
 		this.start();
-	},
-	start: function() {
+	}
+	start() {
 		// dispatch an event to render the titles
 		this.emitter.dispatch('render-title');
 	}
-});
+}
 
 const app = new Application();</code></pre>
 
@@ -1055,68 +1145,106 @@ const app = new Application();</code></pre>
 			<a class="anchor" name="oop"></a>
 		</div>
 
-		<p>Javascript is an object oriented language, but do not have built-in classes, private members, inheritance, interfaces and other common features found in other languages.</p>
-		<p>There are a lot of debates whether you should emulate classes, but the fact is, some inheritance capabilities are sometimes needed not to duplicate code (<a href="http://en.wikipedia.org/wiki/Don't_repeat_yourself" target="_blank">DRY principle</a>).</p>
-		<p>Inheritance is very useful in many cases but must not be overused, <a href="http://en.wikipedia.org/wiki/Composition_over_inheritance" target="_blank">composition over inheritance</a> is usually a better design in the long term. The solution is using the right pattern for the right problem.</p>
-		<p>soma provides some useful utility functions to emulate inheritance.</p>
+		<p>Javascript is an object oriented language, and did not have built-in classes, private members,
+			inheritance, interfaces and other common features found in other languages.</p>
+		<p>At the time of writing, javascript has now classes and soma works just with classes.</p>
+		<p>Inheritance is very useful in many cases but must not be overused,
+			<a href="http://en.wikipedia.org/wiki/Composition_over_inheritance" target="_blank">composition over inheritance</a>
+			is usually a better design in the long term. The solution is using the right pattern for the right problem.</p>
+		<p>For version of javascript that does not support classes, soma provides some useful utility functions to emulate inheritance.</p>
 
 		<div class="back"><a href="#">top</a></div>
 
 		<div class="subtitle">
-			<h2>Inheritance</h2>
-			<a class="anchor" name="inheritance"></a>
+			<h2>Inheritance with classes</h2>
+			<a class="anchor" name="inheritance-with-classes"></a>
 		</div>
 
-		<p>In the following example, a function <code>Person</code> is created, along with a <code>say</code> method. A second function <code>Man</code> is created and inherits from its parent.</p>
-		<p>The <code>Man</code> constructor calls its parent constructor sending a parameter (<code>name</code>) so the assignment is not broken. The <code>Man.prototype.say</code> overrides its parent <code>say</code> method so it can display a more specific message.</p>
+		<p>In the following example, a class <code>Person</code> is created, along with a <code>say</code> method. A second class <code>Man</code> is created and inherits from its parent.</p>
+		<p>The <code>Man</code> constructor calls its parent constructor sending a parameter (<code>name</code>) so the assignment is not broken. The <code>Man.say</code> method overrides its parent <code>say</code> method so it can display a more specific message.</p>
 
-		<div class="highlight"><pre><span class="c1">// create &quot;super class&quot;</span>
-<span class="kd">var</span> <span class="nx">Person</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="nx">name</span><span class="p">;</span>
-<span class="p">};</span>
-<span class="nx">Person</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">say</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;I&#39;m a Person, my name is:&quot;</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">name</span><span class="p">);</span>
-<span class="p">}</span>
+		<pre><code class="language-js">class Person {
+	constructor(name) {
+		this.name = name;
+	}
+	say() {
+		console.log("I'm a Person, my name is:", this.name);
+	}
+}
 
-<span class="c1">// create &quot;child class&quot; that will inherit from its parent</span>
-<span class="kd">var</span> <span class="nx">Man</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
-  <span class="nx">Person</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">name</span><span class="p">);</span> <span class="c1">// call super constructor</span>
-<span class="p">}</span>
-<span class="nx">Man</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">say</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-  <span class="c1">// Person.prototype.say.call(this); // call super say method</span>
-  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;I&#39;m a Man, my name is:&quot;</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">name</span><span class="p">);</span>
-<span class="p">}</span>
+class Man extends Person {
+	constructor(name) {
+		super(name);
+	}
+	say() {
+		console.log("I'm a Man, my name is:", this.name);
+	}
+}
 
-<span class="c1">// apply inheritance</span>
-<span class="nx">soma</span><span class="p">.</span><span class="nx">inherit</span><span class="p">(</span><span class="nx">Person</span><span class="p">,</span> <span class="nx">Man</span><span class="p">.</span><span class="nx">prototype</span><span class="p">);</span>
+// create Person
+var person = new Person("Doe");
+person.say();
 
-<span class="c1">// create Person</span>
-<span class="kd">var</span> <span class="nx">person</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Person</span><span class="p">(</span><span class="s2">&quot;Doe&quot;</span><span class="p">);</span>
-<span class="nx">person</span><span class="p">.</span><span class="nx">say</span><span class="p">();</span>
+// create Man
+var john = new Man("John Doe");
+john.say();</code></pre>
 
-<span class="c1">// create Man</span>
-<span class="kd">var</span> <span class="nx">john</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Man</span><span class="p">(</span><span class="s2">&quot;John Doe&quot;</span><span class="p">);</span>
-<span class="nx">john</span><span class="p">.</span><span class="nx">say</span><span class="p">();</span>
-</pre></div>
+		<p><a href="https://replit.com/@RomualdQuantin/Soma-oop-classes?lite=true#script.js" class="button icon edit" target="_blank">try it yourself</a></p>
 
-		<p><a href="http://plnkr.co/edit/IIHqPwNuikn5E7MoQoLM?preview" class="button icon edit" target="_blank">try it yourself</a></p>
+		<div class="back"><a href="#">top</a></div>
+
+		<div class="subtitle">
+			<h2>Inheritance without classes</h2>
+			<a class="anchor" name="inheritance-without-classes"></a>
+		</div>
+
+		<p>Here is the same example but with functions and prototypes.</p>
+
+		<pre><code class="language-js">// create "super class"
+var Person = function(name) {
+	this.name = name;
+};
+Person.prototype.say = function() {
+	console.log("I'm a Person, my name is:", this.name);
+}
+
+// create "child class" that will inherit from its parent
+var Man = function(name) {
+	Person.call(this, name); // call super constructor
+}
+Man.prototype.say = function() {
+	// Person.prototype.say.call(this); // call super say method
+	console.log("I'm a Man, my name is:", this.name);
+}
+
+// apply inheritance
+soma.utils.inherit(Person, Man.prototype);
+
+// create Person
+var person = new Person("Doe");
+person.say();
+
+// create Man
+var john = new Man("John Doe");
+john.say();</code></pre>
+
+		<p><a href="https://replit.com/@RomualdQuantin/Soma-oop-prototype?lite=true#script.js" class="button icon edit" target="_blank">try it yourself</a></p>
 
 		<p>Here is a different syntax using an object to create the <code>Man</code> function. The result is exactly the same as the previous example.</p>
 
-		<div class="highlight"><pre><span class="c1"><span class="c1">// create &quot;child class&quot; that will inherit from its parent</span>
-<span class="c1">// apply inheritance using an object that will become the prototype</span>
-<span class="kd">var</span> <span class="nx">Man</span> <span class="o">=</span> <span class="nx">soma</span><span class="p">.</span><span class="nx">inherit</span><span class="p">(</span><span class="nx">Person</span><span class="p">,</span> <span class="p">{</span>
-  <span class="nx">constructor</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
-    <span class="nx">Person</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">name</span><span class="p">);</span> <span class="c1">// call super constructor</span>
-  <span class="p">},</span>
-  <span class="nx">say</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-    <span class="c1">// Person.prototype.say.call(this); // call super say method</span>
-  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;I&#39;m a Man, my name is:&quot;</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">name</span><span class="p">);</span>
-  <span class="p">}</span>
-<span class="p">});</span>
-</pre></div>
+		<pre><code class="language-js">// create 'child class' that will inherit from its parent
+// apply inheritance using an object that will become the prototype
+const Man = soma.utils.inherit(Person, {
+	constructor: function(name) {
+		Person.call(this, name); // call super constructor
+	},
+	say: function() {
+		// Person.prototype.say.call(this); // call super say method
+		console.log('I\'m a Man, my name is:', this.name);
+	}
+});</code></pre>
 
-		<p><a href="http://plnkr.co/edit/atRF1AA5SRs5EnEhpFZV?preview" class="button icon edit" target="_blank">try it yourself</a></p>
+		<p><a href="https://replit.com/@RomualdQuantin/Soma-oop-inherit?lite=true#script.js" class="button icon edit" target="_blank">try it yourself</a></p>
 
 		<div class="back"><a href="#">top</a></div>
 
@@ -1127,17 +1255,16 @@ const app = new Application();</code></pre>
 
 		<p>Here is small snippet to attach a method and easily apply inheritance on a function.</p>
 
-		<div class="highlight"><pre><span class="c1">// create shortcut extend method</span>
-<span class="nx">Person</span><span class="p">.</span><span class="nx">extend</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">obj</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="nx">soma</span><span class="p">.</span><span class="nx">inherit</span><span class="p">(</span><span class="nx">Person</span><span class="p">,</span> <span class="nx">obj</span><span class="p">);</span>
-<span class="p">};</span>
-<span class="c1">// create &quot;child class&quot; using the extend shortcut</span>
-<span class="kd">var</span> <span class="nx">Man</span> <span class="o">=</span> <span class="nx">Person</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
+		<pre><code class="language-js">// create shortcut extend method
+Person.extend = function (obj) {
+	return soma.utils.inherit(Person, obj);
+};
+// create "child class" using the extend shortcut
+var Man = Person.extend({
 
-<span class="p">});</span>
-</pre></div>
+});</code></pre>
 
-		<p><a href="http://plnkr.co/edit/ipL2XpdgS6BvjVYJvcYD?preview" class="button icon edit" target="_blank">try it yourself</a></p>
+		<p><a href="https://replit.com/@RomualdQuantin/Soma-oop-extend?lite=true#script.js" class="button icon edit" target="_blank">try it yourself</a></p>
 
 		<div class="back"><a href="#">top</a></div>
 
@@ -1148,21 +1275,17 @@ const app = new Application();</code></pre>
 
 		<p>The way used to call a parent constructor and a method up in the prototypal chain in the previous example is the native javascript way of doing it.</p>
 
-		<div class="highlight"><pre><span class="c1">// call parent constructor</span>
-<span class="nx">ParentFunction</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">param</span><span class="p">);</span>
-<span class="c1">// call parent prototype method</span>
-<span class="nx">ParentFunction</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">myMethod</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">param</span><span class="p">);</span>
-</pre></div>
+		<pre><code class="language-js">// call parent constructor
+ParentFunction.call(this, param);
+// call parent prototype method
+ParentFunction.prototype.myMethod.call(this, param);</code></pre>
 
 		<p>soma offers a slightly different way of writing calls to the parents. Note that this syntax is not pure javascript, this is a soma enhancement, use it only if the application benefit of not writing the parent function name explicitly.</p>
 
-		<div class="highlight"><pre><span class="c1">// call parent constructor</span>
-<span class="nx">CurrentFunction</span><span class="p">.</span><span class="nx">parent</span><span class="p">.</span><span class="nx">constructor</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">param</span><span class="p">);</span>
-<span class="c1">// call parent prototype method</span>
-<span class="nx">CurrentFunction</span><span class="p">.</span><span class="nx">parent</span><span class="p">.</span><span class="nx">myMethod</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">param</span><span class="p">);</span>
-</pre></div>
-
-		<p><a href="http://plnkr.co/edit/AFeM5fIlUlUO5OhKpI94?preview" class="button icon edit" target="_blank">try it yourself</a></p>
+		<pre><code class="language-js">// call parent constructor
+CurrentFunction.parent.constructor.call(this, param);
+// call parent prototype method
+CurrentFunction.parent.myMethod.call(this, param);</code></pre>
 
 		<div class="back"><a href="#">top</a></div>
 
@@ -1171,215 +1294,21 @@ const app = new Application();</code></pre>
 	<section>
 
 		<div class="title">
-			<h1>Plugins</h1>
-			<a class="anchor" name="plugins"></a>
+			<h1>Modules</h1>
+			<a class="anchor" name="modules"></a>
 		</div>
 
-		<p>soma provide an interface to create plugins to add new features to the framework.</p>
-		<p>The <a href="http://soundstep.github.io/soma-template/" target="_blank">soma-template</a> plugin is a self-contained library with no dependency, but can also be added to soma as a plugin. soma-template is adding DOM manipulation capabilities and a custom method to create template directly in the framework (<code>instance.createTemplate</code>).</p>
-		<p>A plugin is a function that can receive framework core elements and custom parameters. The plugin can be instantiated using the method <code>createPlugin</code>, the first parameter is the plugin function to be instantiated and the others parameters will be sent the plugin constructor.</p>
+		<p>Modules are separated entities, following a specific signature, so they can be added effortlessly in a soma application. The can be seen as "plugins".</p>
+		<p>The modules can be developed using the soma capabilities (injection, mediators, and so on), or be completely independent of soma (vanilla javascript).</p>
 
-		<div class="back"><a href="#">top</a></div>
+		<p>A module two requirements:</p>
+		<ul>
+			<li>It has to be instantiated (function or class)</li>
+			<li>It should have an `id` as static property</li>
+			<li>Optional: a `dispose` method to tear the module down</li>
+		</ul>
 
-		<div class="subtitle">
-			<h2>Create a plugin</h2>
-			<a class="anchor" name="create-a-plugin"></a>
-		</div>
-
-		<p>Plugins can be either dependent or independent to the framework, it is only a matter of choice. The following example show a simple structure to create a plugin.</p>
-
-		<div class="highlight"><pre><span class="nt">&lt;script&gt;</span>
-<span class="c1">// plugin</span>
-<span class="kd">var</span> <span class="nx">Plugin</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">instance</span><span class="p">,</span> <span class="nx">dispatcher</span><span class="p">,</span> <span class="nx">injector</span><span class="p">,</span> <span class="nx">customParameter</span><span class="p">)</span> <span class="p">{</span>
-  <span class="c1">// framework core elements can be injected as well custom parameters</span>
-  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;Plugin created with&#39;</span><span class="p">,</span> <span class="nx">customParameter</span><span class="p">);</span>
-<span class="p">};</span>
-
-<span class="kd">var</span> <span class="nx">Application</span> <span class="o">=</span> <span class="nx">soma</span><span class="p">.</span><span class="nx">Application</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
-  <span class="nx">init</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-    <span class="c1">// create a plugin</span>
-    <span class="kd">var</span> <span class="nx">plugin</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">createPlugin</span><span class="p">(</span><span class="nx">Plugin</span><span class="p">,</span> <span class="s1">&#39;custom parameter&#39;</span><span class="p">);</span>
-  <span class="p">}</span>
-<span class="p">});</span>
-
-<span class="kd">var</span> <span class="nx">app</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Application</span><span class="p">();</span>
-<span class="nt">&lt;/script&gt;</span>
-</pre></div>
-
-		<p><a href="http://plnkr.co/edit/zpv15klrAJ2eTIRWGV6i?preview" class="button icon edit" target="_blank">try it yourself</a></p>
-
-		<div class="back"><a href="#">top</a></div>
-
-		<div class="subtitle">
-			<h2>Mouse plugin</h2>
-			<a class="anchor" name="mouse-plugin"></a>
-		</div>
-
-		<p>The following example creates a <code>MousePlugin</code> and an injection mapping rule so it can be used anywhere in the application. The MousePlugin provide a <code>getPosition</code> method to retrieve the mouse coordinates, as well as a dispose function to "destroy" the plugin.</p>
-		<p>Providing a <code>dispose</code> method is a good practice to properly destroy an object. Listeners can be removed, internal objects can be destroyed, so the object can be <a href="https://developer.mozilla.org/en-US/docs/JavaScript/Memory_Management" target="_blank">garbage collected</a>.</p>
-
-		<div class="highlight"><pre><span class="c1">// plugin to retrieve the mouse coordinates</span>
-<span class="kd">var</span> <span class="nx">MousePlugin</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-  <span class="c1">// object holding mouse position</span>
-  <span class="kd">var</span> <span class="nx">position</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="nx">x</span><span class="o">:</span> <span class="mi">0</span><span class="p">,</span>
-    <span class="nx">y</span><span class="o">:</span> <span class="mi">0</span>
-  <span class="p">};</span>
-  <span class="c1">// event handler storing the mouse position</span>
-  <span class="kd">var</span> <span class="nx">handler</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="p">{</span>
-    <span class="nx">position</span><span class="p">.</span><span class="nx">x</span> <span class="o">=</span> <span class="nx">event</span><span class="p">.</span><span class="nx">clientX</span><span class="p">;</span>
-    <span class="nx">position</span><span class="p">.</span><span class="nx">y</span> <span class="o">=</span> <span class="nx">event</span><span class="p">.</span><span class="nx">clientY</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="c1">//add event</span>
-  <span class="nb">window</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s1">&#39;mousemove&#39;</span><span class="p">,</span> <span class="nx">handler</span><span class="p">);</span>
-  <span class="c1">// returns a getPosition method to retrieve the mouse position</span>
-  <span class="c1">// returns a dispose method to remove the listener</span>
-  <span class="k">return</span> <span class="p">{</span>
-    <span class="nx">getPosition</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nx">position</span><span class="p">;</span>
-    <span class="p">},</span>
-    <span class="nx">dispose</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-      <span class="nb">window</span><span class="p">.</span><span class="nx">removeEventListener</span><span class="p">(</span><span class="s1">&#39;mousemove&#39;</span><span class="p">,</span> <span class="nx">handler</span><span class="p">);</span>
-    <span class="p">}</span>
-  <span class="p">}</span>
-<span class="p">};</span>
-
-<span class="c1">// create the plugin</span>
-<span class="kd">var</span> <span class="nx">mouse</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">createPlugin</span><span class="p">(</span><span class="nx">MousePlugin</span><span class="p">);</span>
-<span class="c1">// create a mapping rule</span>
-<span class="k">this</span><span class="p">.</span><span class="nx">injector</span><span class="p">.</span><span class="nx">mapValue</span><span class="p">(</span><span class="s1">&#39;mouse&#39;</span><span class="p">,</span> <span class="nx">mouse</span><span class="p">);</span>
-</pre></div>
-
-		<p><a href="http://plnkr.co/edit/aGTAeUm42GxCGgA1RxVZ?preview" class="button icon edit" target="_blank">try it yourself</a></p>
-
-		<div class="back"><a href="#">top</a></div>
-
-		<div class="subtitle">
-			<h2>Ready plugin (auto-registration)</h2>
-			<a class="anchor" name="ready-plugin"></a>
-		</div>
-
-		<p>The following plugin (<code>ReadyPlugin</code>) alters the prototype of the soma application and add a <code>ready</code> method to it. The <code>ready</code> method is used to add callbacks for the application to know when the DOM has been fully loaded.</p>
-		<p>An event could have been dispatched but for the sake of the demonstration. the application prototype has been altered to show a direct use of a plugin. The <code>ready</code> function is used both in the application instance and in the view.</p>
-		<p>The plugin is also not created by the user application instance. The plugin is "auto-registered" and will be made available by the framework automatically. This makes the creation of a plugin possible without further actions, by executing its code, or by loading a javascript file containing the plugin.</p>
-
-		<div class="highlight"><pre><span class="c1">// plugin to add callbacks when the dom is ready</span>
-<span class="kd">var</span> <span class="nx">ReadyPlugin</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">instance</span><span class="p">)</span> <span class="p">{</span>
-  <span class="c1">// ready function to add callbacks when the DOM is loaded (https://github.com/ded/domready)</span>
-  <span class="kd">var</span> <span class="nx">ready</span><span class="o">=</span><span class="kd">function</span><span class="p">(){</span><span class="kd">function</span> <span class="nx">l</span><span class="p">(</span><span class="nx">b</span><span class="p">){</span><span class="k">for</span><span class="p">(</span><span class="nx">k</span><span class="o">=</span><span class="mi">1</span><span class="p">;</span><span class="nx">b</span><span class="o">=</span><span class="nx">a</span><span class="p">.</span><span class="nx">shift</span><span class="p">();)</span><span class="nx">b</span><span class="p">()}</span><span class="kd">var</span> <span class="nx">b</span><span class="p">,</span><span class="nx">a</span><span class="o">=</span><span class="p">[],</span><span class="nx">c</span><span class="o">=!</span><span class="mi">1</span><span class="p">,</span><span class="nx">d</span><span class="o">=</span><span class="nb">document</span><span class="p">,</span><span class="nx">e</span><span class="o">=</span><span class="nx">d</span><span class="p">.</span><span class="nx">documentElement</span><span class="p">,</span><span class="nx">f</span><span class="o">=</span><span class="nx">e</span><span class="p">.</span><span class="nx">doScroll</span><span class="p">,</span><span class="nx">g</span><span class="o">=</span><span class="s2">&quot;DOMContentLoaded&quot;</span><span class="p">,</span><span class="nx">h</span><span class="o">=</span><span class="s2">&quot;addEventListener&quot;</span><span class="p">,</span><span class="nx">i</span><span class="o">=</span><span class="s2">&quot;onreadystatechange&quot;</span><span class="p">,</span><span class="nx">j</span><span class="o">=</span><span class="s2">&quot;readyState&quot;</span><span class="p">,</span><span class="nx">k</span><span class="o">=</span><span class="sr">/^loade|c/</span><span class="p">.</span><span class="nx">test</span><span class="p">(</span><span class="nx">d</span><span class="p">[</span><span class="nx">j</span><span class="p">]);</span><span class="k">return</span> <span class="nx">d</span><span class="p">[</span><span class="nx">h</span><span class="p">]</span><span class="o">&amp;&amp;</span><span class="nx">d</span><span class="p">[</span><span class="nx">h</span><span class="p">](</span><span class="nx">g</span><span class="p">,</span><span class="nx">b</span><span class="o">=</span><span class="kd">function</span><span class="p">(){</span><span class="nx">d</span><span class="p">.</span><span class="nx">removeEventListener</span><span class="p">(</span><span class="nx">g</span><span class="p">,</span><span class="nx">b</span><span class="p">,</span><span class="nx">c</span><span class="p">),</span><span class="nx">l</span><span class="p">()},</span><span class="nx">c</span><span class="p">),</span><span class="nx">f</span><span class="o">&amp;&amp;</span><span class="nx">d</span><span class="p">.</span><span class="nx">attachEvent</span><span class="p">(</span><span class="nx">i</span><span class="p">,</span><span class="nx">b</span><span class="o">=</span><span class="kd">function</span><span class="p">(){</span><span class="sr">/^c/</span><span class="p">.</span><span class="nx">test</span><span class="p">(</span><span class="nx">d</span><span class="p">[</span><span class="nx">j</span><span class="p">])</span><span class="o">&amp;&amp;</span><span class="p">(</span><span class="nx">d</span><span class="p">.</span><span class="nx">detachEvent</span><span class="p">(</span><span class="nx">i</span><span class="p">,</span><span class="nx">b</span><span class="p">),</span><span class="nx">l</span><span class="p">())}),</span><span class="nx">f</span><span class="o">?</span><span class="kd">function</span><span class="p">(</span><span class="nx">b</span><span class="p">){</span><span class="nx">self</span><span class="o">!=</span><span class="nx">top</span><span class="o">?</span><span class="nx">k</span><span class="o">?</span><span class="nx">b</span><span class="p">()</span><span class="o">:</span><span class="nx">a</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">b</span><span class="p">)</span><span class="o">:</span><span class="kd">function</span><span class="p">(){</span><span class="k">try</span><span class="p">{</span><span class="nx">e</span><span class="p">.</span><span class="nx">doScroll</span><span class="p">(</span><span class="s2">&quot;left&quot;</span><span class="p">)}</span><span class="k">catch</span><span class="p">(</span><span class="nx">a</span><span class="p">){</span><span class="k">return</span> <span class="nx">setTimeout</span><span class="p">(</span><span class="kd">function</span><span class="p">(){</span><span class="nx">ready</span><span class="p">(</span><span class="nx">b</span><span class="p">)},</span><span class="mi">50</span><span class="p">)}</span><span class="nx">b</span><span class="p">()}()}</span><span class="o">:</span><span class="kd">function</span><span class="p">(</span><span class="nx">b</span><span class="p">){</span><span class="nx">k</span><span class="o">?</span><span class="nx">b</span><span class="p">()</span><span class="o">:</span><span class="nx">a</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">b</span><span class="p">)}}();</span>
-  <span class="c1">// add the ready function to the prototype of the soma application for a direct use</span>
-  <span class="nx">instance</span><span class="p">.</span><span class="nx">constructor</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">ready</span> <span class="o">=</span> <span class="nx">ready</span><span class="p">;</span>
-<span class="p">};</span>
-
-<span class="c1">// auto-registration, the plugin will be instantiated automatically by soma</span>
-<span class="k">if</span> <span class="p">(</span><span class="nx">soma</span><span class="p">.</span><span class="nx">plugins</span> <span class="o">&amp;&amp;</span> <span class="nx">soma</span><span class="p">.</span><span class="nx">plugins</span><span class="p">.</span><span class="nx">add</span><span class="p">)</span> <span class="p">{</span>
-  <span class="nx">soma</span><span class="p">.</span><span class="nx">plugins</span><span class="p">.</span><span class="nx">add</span><span class="p">(</span><span class="nx">ReadyPlugin</span><span class="p">);</span>
-<span class="p">}</span>
-
-<span class="c1">// view</span>
-<span class="kd">var</span> <span class="nx">View</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">target</span><span class="p">,</span> <span class="nx">instance</span><span class="p">)</span> <span class="p">{</span>
-  <span class="nx">instance</span><span class="p">.</span><span class="nx">ready</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-    <span class="nx">target</span><span class="p">.</span><span class="nx">innerHTML</span> <span class="o">=</span> <span class="s1">&#39;DOM is loaded&#39;</span><span class="p">;</span>
-  <span class="p">});</span>
-<span class="p">};</span>
-
-<span class="kd">var</span> <span class="nx">Application</span> <span class="o">=</span> <span class="nx">soma</span><span class="p">.</span><span class="nx">Application</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
-  <span class="nx">init</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-    <span class="c1">// use the plugin</span>
-    <span class="k">this</span><span class="p">.</span><span class="nx">ready</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-      <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;DOM READY&#39;</span><span class="p">);</span>
-    <span class="p">});</span>
-  <span class="p">},</span>
-  <span class="nx">start</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-    <span class="c1">// create a view</span>
-    <span class="k">this</span><span class="p">.</span><span class="nx">mediators</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">View</span><span class="p">,</span> <span class="nb">document</span><span class="p">.</span><span class="nx">querySelector</span><span class="p">(</span><span class="s1">&#39;.report&#39;</span><span class="p">));</span>
-  <span class="p">}</span>
-<span class="p">});</span>
-
-<span class="kd">var</span> <span class="nx">app</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Application</span><span class="p">();</span>
-</pre></div>
-
-		<p><a href="http://plnkr.co/edit/oTsfM594TXVKo1HmROLL?preview" class="button icon edit" target="_blank">try it yourself</a></p>
-
-		<div class="back"><a href="#">top</a></div>
-
-		<div class="subtitle">
-			<h2>Orientation plugin</h2>
-			<a class="anchor" name="orientation-plugin"></a>
-		</div>
-
-		<p>The role of the following plugin (<code>OrientationPlugin</code>), is to detect an orientation change on a mobile device, either portait or landscape. The orientation can be retrieve at any moment from the plugin, but the plugin will also dispatch an event when the device orientation changes. This makes possible for another entities to simply listen to this events to update its state.</p>
-
-		<div class="highlight"><pre><span class="c1">// plugin to retrieve the mouse coordinates</span>
-<span class="kd">var</span> <span class="nx">OrientationPlugin</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">dispatcher</span><span class="p">)</span> <span class="p">{</span>
-  <span class="c1">// hold current orientation</span>
-  <span class="kd">var</span> <span class="nx">orientation</span> <span class="o">=</span> <span class="nx">detectDeviceOrientation</span><span class="p">();</span>
-  <span class="c1">// add listener to detect orientation change</span>
-  <span class="nb">window</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s1">&#39;orientationchange&#39;</span><span class="p">,</span> <span class="nx">handler</span><span class="p">);</span>
-  <span class="c1">// store the new orientation and dispatch an event</span>
-  <span class="kd">function</span> <span class="nx">handler</span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="p">{</span>
-    <span class="nx">orientation</span> <span class="o">=</span> <span class="nx">detectDeviceOrientation</span><span class="p">();</span>
-    <span class="nx">dispatcher</span><span class="p">.</span><span class="nx">dispatch</span><span class="p">(</span><span class="s1">&#39;orientation&#39;</span><span class="p">,</span> <span class="nx">orientation</span><span class="p">);</span>
-  <span class="p">}</span>
-  <span class="c1">// return the orientation, portait or landscape</span>
-  <span class="kd">function</span> <span class="nx">detectDeviceOrientation</span><span class="p">(){</span>
-    <span class="k">switch</span><span class="p">(</span><span class="nb">window</span><span class="p">.</span><span class="nx">orientation</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">case</span> <span class="mi">90</span><span class="o">:</span>
-      <span class="k">case</span> <span class="o">-</span><span class="mi">90</span><span class="o">:</span>
-        <span class="k">return</span> <span class="s1">&#39;landscape&#39;</span><span class="p">;</span>
-      <span class="k">break</span><span class="p">;</span>
-      <span class="k">case</span> <span class="mi">0</span><span class="o">:</span>
-      <span class="k">case</span> <span class="mi">180</span><span class="o">:</span>
-      <span class="k">default</span><span class="o">:</span>
-        <span class="k">return</span> <span class="s1">&#39;portait&#39;</span><span class="p">;</span>
-    <span class="p">}</span>
-  <span class="p">}</span>
-  <span class="c1">// return plugin API</span>
-  <span class="c1">// getOrientation returns either landscape or portait</span>
-  <span class="c1">// dispose removes the listener</span>
-  <span class="k">return</span> <span class="p">{</span>
-    <span class="nx">getOrientation</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nx">orientation</span><span class="p">;</span>
-    <span class="p">},</span>
-    <span class="nx">dispose</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-      <span class="nb">window</span><span class="p">.</span><span class="nx">removeEventListener</span><span class="p">(</span><span class="s1">&#39;orientationchange&#39;</span><span class="p">,</span> <span class="nx">handler</span><span class="p">);</span>
-    <span class="p">}</span>
-  <span class="p">}</span>
-<span class="p">};</span>
-
-<span class="c1">// view</span>
-<span class="kd">var</span> <span class="nx">View</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">target</span><span class="p">,</span> <span class="nx">dispatcher</span><span class="p">,</span> <span class="nx">orientation</span><span class="p">)</span> <span class="p">{</span>
-  <span class="c1">// display the orientation when the view is created</span>
-  <span class="nx">updateOrientation</span><span class="p">(</span><span class="nx">orientation</span><span class="p">.</span><span class="nx">getOrientation</span><span class="p">());</span>
-  <span class="c1">// listen to the event dispatched by the plugin</span>
-  <span class="nx">dispatcher</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s1">&#39;orientation&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="p">{</span>
-    <span class="c1">// display the orientation when a change happened</span>
-    <span class="nx">updateOrientation</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">params</span><span class="p">);</span>
-  <span class="p">})</span>
-  <span class="c1">// display the orientation in the DOM Element</span>
-  <span class="kd">function</span> <span class="nx">updateOrientation</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span> <span class="p">{</span>
-    <span class="nx">target</span><span class="p">.</span><span class="nx">innerHTML</span> <span class="o">=</span> <span class="s1">&#39;Current orientation: &#39;</span> <span class="o">+</span> <span class="nx">value</span><span class="p">;</span>
-  <span class="p">}</span>
-<span class="p">};</span>
-
-<span class="kd">var</span> <span class="nx">Application</span> <span class="o">=</span> <span class="nx">soma</span><span class="p">.</span><span class="nx">Application</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
-  <span class="nx">init</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-    <span class="c1">// create the plugin</span>
-    <span class="kd">var</span> <span class="nx">plugin</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">createPlugin</span><span class="p">(</span><span class="nx">OrientationPlugin</span><span class="p">);</span>
-    <span class="c1">// create a mapping rule</span>
-    <span class="k">this</span><span class="p">.</span><span class="nx">injector</span><span class="p">.</span><span class="nx">mapValue</span><span class="p">(</span><span class="s1">&#39;orientation&#39;</span><span class="p">,</span> <span class="nx">plugin</span><span class="p">);</span>
-  <span class="p">},</span>
-  <span class="nx">start</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-    <span class="c1">// create a view</span>
-    <span class="k">this</span><span class="p">.</span><span class="nx">mediators</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">View</span><span class="p">,</span> <span class="nb">document</span><span class="p">.</span><span class="nx">querySelector</span><span class="p">(</span><span class="s1">&#39;.report&#39;</span><span class="p">));</span>
-  <span class="p">}</span>
-<span class="p">});</span>
-
-<span class="kd">var</span> <span class="nx">app</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Application</span><span class="p">();</span>
-</pre></div>
-
-		<p><a href="http://run.plnkr.co/plunks/qJthopgArZx8t5yusxKn/" class="button icon edit" target="_blank">Test on a mobile device</a></p>
-		<p><a href="http://plnkr.co/edit/qJthopgArZx8t5yusxKn?preview" class="button icon edit" target="_blank">Try it yourself</a></p>
+		<p><a href="" class="button icon edit" target="_blank">try it yourself</a></p>
 
 		<div class="back"><a href="#">top</a></div>
 
@@ -1600,7 +1529,6 @@ const app = new Application();</code></pre>
 		<div class="back"><a href="#">top</a></div>
 
 	</section>
-
 
 </div>
 
