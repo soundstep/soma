@@ -2,11 +2,19 @@ declare module soma {
 
 	var version: string;
 
-	declare namespace utils {
-		const applyProperties = (target: any, extension: any, bindToExtension: boolean, list?: any[]) => {};
-		const augment = (target: any, extension: any, list?: any[]) => {};
-		const inherit = (target: any, parent: any) => {};
-		const extend = (obj: any) => {};
+	// declare namespace utils {
+	// 	const applyProperties = (target: any, extension: any, bindToExtension: boolean, list?: any[]) => {};
+	// 	const augment = (target: any, extension: any, list?: any[]) => {};
+	// 	const inherit = (target: any, parent: any) => {};
+	// 	const extend = (obj: any) => {};
+	// }
+
+	// declare namespace template {
+	// 	const craerte = (el:Element) => {};
+	// }
+
+	export class template {
+		static create(element:HTMLElement):any;
 	}
 
 	export class Emitter {
@@ -19,7 +27,7 @@ declare module soma {
 	}
 
 	export class Application {
-		injector: infuse.Injector;
+		injector: any;
 		emitter: soma.Emitter;
 		commands: soma.Commands;
 		mediators: soma.Mediators;
@@ -28,14 +36,20 @@ declare module soma {
 		setup():void;
 		dispose():void;
 	}
+
 	export class Commands {
 		get(commandName: string):any;
 		add(commandName: string, command: any):void;
 		remove(commandName: string):void;
 		dispose():void;
 	}
+
 	export class Mediators {
 		create(target:any, cl:any):any;
 		dispose():void;
+	}
+
+	export class Modules {
+
 	}
 }
