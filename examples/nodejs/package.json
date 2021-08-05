@@ -1,0 +1,16 @@
+{
+  "name": "somajs-nodejs-demo",
+  "version": "0.0.0",
+  "description": "soma.js soma-template node.js demo",
+  "main": "app.js",
+  "repository": "",
+  "author": "",
+  "dependencies": {
+    "@soundstep/infuse": "^3.0.3",
+    "@soundstep/soma": "^3.0.4",
+    "express": "3.x",
+    "jsdom": "^16.7.0",
+    "signals": "^1.0.0",
+    "soma-template": "^0.3.2"
+  }
+}

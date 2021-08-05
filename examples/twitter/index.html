@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>soma.js | twitter</title>
+	<link rel="stylesheet" href="styles/styles.css">
+</head>
+<body>
+
+<div class="twitter">
+	<div class="search">
+		<input class="queryInput" placeholder="Search twitter" data-keypress="search()" autofocus/>
+		<div class="message data-cloak">{{message}}</div>
+	</div>
+	<div class="result">
+		<ul class="data-cloak">
+			<li data-repeat="tweet in tweets" data-click="visit(tweet.from_user, tweet.id_str)">
+				<div class="tpl-tweet">
+					<img data-src="{{tweet.profile_image_url}}" alt=""/>
+					<div class="tpl-tweet-username">{{tweet.from_user}}</div>
+					<div class="tpl-tweet-text">{{tweet.text}}</div>
+				</div>
+			</li>
+		</ul>
+	</div>
+</div>
+
+<script type="text/javascript" src="https://soundstep.github.io/soma/libs/signals.min.js"></script>
+<script type="text/javascript" src="https://soundstep.github.io/soma/libs/infuse.min.js"></script>
+<script type="text/javascript" src="js/libs/jquery-1.9.1.min.js"></script>
+<script src="../../dist/soma.js"></script>
+<script type="text/javascript" src="js/libs/soma-template.js"></script>
+<script type="text/javascript" src="js/twitter.js"></script>
+
+<script type="text/javascript">
+
+	var _gaq = _gaq || [];
+	_gaq.push(['_setAccount', 'UA-36294101-3']);
+	_gaq.push(['_trackPageview']);
+
+	(function() {
+		var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+		ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+		var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+	})();
+
+</script>
+
+</body>
+</html>
